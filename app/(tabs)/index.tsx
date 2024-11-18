@@ -1,74 +1,233 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { StyleSheet, View, Text, ScrollView, Pressable } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { AntDesign, Entypo, FontAwesome5, Ionicons,FontAwesome,Octicons,MaterialIcons,FontAwesome6 } from '@expo/vector-icons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { useNavigation } from '@react-navigation/native';
 
 export default function HomeScreen() {
+
+  const navigation = useNavigation()
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <ScrollView contentContainerStyle={styles.container}>
+      <LinearGradient colors={["#7e7fD5", "#E9E4F0"]} style={styles.gradient}>
+        <View style={styles.header}>
+          <AntDesign name="barschart" size={24} color="black" />
+          <Text style={styles.title}>Employee Management System</Text>
+          <Entypo name="lock-open" size={24} color="black" />
+        </View>
+        <View style={styles.menuContainer}>
+          <Pressable style={styles.press} onPress={()=> navigation.navigate('employees')}>
+            
+            <View style={styles.sec1}>
+              <FontAwesome5 name="users" size={24} color="black" />
+            </View>
+            <Text style={styles.text_list}>Employee List</Text>
+          </Pressable>
+          <Pressable style={styles.press}>
+            <View style={styles.sec1}>
+              <Ionicons name="checkmark-done" size={24} color="black" />
+            </View>
+            <Text style={styles.text_list}>Mark Attendance</Text>
+          </Pressable>
+        </View>
+        <View style={styles.view_report}>
+          <Pressable style={styles.press_attend}>
+            <View style={styles.result}>
+            <FontAwesome6 name="people-line" size={24} color="black" />
+            </View>
+            <Text style={styles.text_report}>Attendance Report</Text>
+             <View style={styles.arrows}>
+             <Entypo name="chevron-right" size={24} color="black" />
+             </View>
+          </Pressable>
+          <Pressable style={styles.press_attend}>
+            <View style={styles.result}>
+            <Octicons name="repo-pull" size={24} color="black" />
+            </View>
+            <Text style={styles.text_report}>Summary Report</Text>
+             <View style={styles.arrows}>
+             <Entypo name="chevron-right" size={24} color="black" />
+             </View>
+          </Pressable>
+          <Pressable style={styles.press_attend}>
+            <View style={styles.result}>
+            <MaterialIcons name="generating-tokens" size={24} color="black" />
+            </View>
+            <Text style={styles.text_report}> all Generate Report</Text>
+             <View style={styles.arrows}>
+             <Entypo name="chevron-right" size={24} color="black" />
+             </View>
+          </Pressable>
+          <Pressable style={styles.press_attend}>
+            <View style={styles.result}>
+            <FontAwesome6 name="people-group" size={24} color="black" />
+            </View>
+            <Text style={styles.text_report}>Overtime Employees</Text>
+             <View style={styles.arrows}>
+             <Entypo name="chevron-right" size={24} color="black" />
+             </View>
+          </Pressable>
+          
+        </View>
+        <View style={styles.sec3}>
+        <View style={styles.attendance_view}>
+            <View style={styles.text_move}>
+            <MaterialCommunityIcons name="guy-fawkes-mask" size={24} color="black" />
+            </View>
+            <Text style={styles.text_list}>
+              Attendance Criteria
+            </Text>
+          </View>
+          <View style={styles.attendance_view}>
+            <View style={styles.text_move}>
+            <FontAwesome name="bar-chart-o" size={24} color="black" />
+            </View>
+            <Text style={styles.text_list}>
+              Increased Workflow
+            </Text>
+          </View>
+          </View>
+          <View style={styles.sec3}>
+        <View style={styles.attendance_view}>
+            <View style={styles.text_move}>
+            <MaterialCommunityIcons name="guy-fawkes-mask" size={24} color="black" />
+            </View>
+            <Text style={styles.text_list}>
+              Cost of Savings
+            </Text>
+          </View>
+          <View style={styles.attendance_view}>
+            <View style={styles.text_move}>
+            <FontAwesome name="bar-chart-o" size={24} color="black" />
+            </View>
+            <Text style={styles.text_list}>
+              Employee Perfomance
+            </Text>
+          </View>
+          </View>
+      </LinearGradient>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flexGrow: 1,
+  },
+  gradient: {
+    flex: 1,
+    padding: 16,
+  },
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
+    padding: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 10,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  menuContainer: {
+    marginTop: 20,
+    flexDirection: 'row', // Align buttons horizontally
+    justifyContent: 'space-evenly', // Distribute space evenly between buttons
+    alignItems: 'center',
   },
+  sec1: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "white",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  text_list: {
+    marginTop: 7,
+    fontWeight: "600",
+    fontSize: 16,
+    color: "#000",
+    textAlign: 'center',
+  },
+  text_report: {
+    flex:1,
+    marginLeft: 10,
+    fontWeight: "600",
+    fontSize: 16,
+    color: "#000",
+    textAlign: 'center',
+  },
+  press: {
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 10,
+    backgroundColor: "#D3CCE3",
+    width: "40%", // Adjust width for better horizontal fit
+    marginHorizontal: 10, // Space between buttons
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  result:{
+    padding:7,
+    width:45,
+    borderRadius:10,
+    backgroundColor:"white",
+    alignItems:"center",
+    justifyContent:"center"
+  },
+  arrows:{
+    width:35,
+    height:35,
+    borderRadius:7,backgroundColor:'white',
+    alignItems:"center",
+    justifyContent:"center"
+  },
+  press_attend:{
+    marginTop:10,
+    backgroundColor:"#BE93C5",
+    borderRadius:6,
+    padding:10,
+    flexDirection:"row",
+    alignItems:"center"
+  },
+  view_report:{
+    marginTop:20,
+    backgroundColor:"white",
+    paddingHorizontal:10,
+    paddingVertical:10,
+    borderRadius:7
+  },
+  text_move:{
+    width:35,
+    height:35,
+    borderRadius:7,
+    backgroundColor:'white',
+    alignItems:'center',
+    justifyContent:'center'
+  },
+  attendance_view:{
+    backgroundColor:'#abcaba',
+    marginTop:7,
+    borderRadius:7,
+    padding:12,
+    alignItems:'center',
+    justifyContent:'center',
+    flex:1
+  },
+  sec3:{
+    flexDirection:'row',
+    alignItems:'center',
+    gap:12
+  }
 });
