@@ -19,6 +19,7 @@ const HomeScreen = () => {
   const [playing, setPlaying] = useState(null);
   const [editNameId, setEditNameId] = useState(null);
   const [newName, setNewName] = useState('');
+  const [recordingTime, setRecordingTime] = useState(0); // Track recording time
 
   // Load voice notes from AsyncStorage on component mount
   useEffect(() => {
@@ -47,6 +48,21 @@ const HomeScreen = () => {
         Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
       );
       setRecording(recording);
+      setRecordingTime(0); // Reset recording time
+
+      // Start updating recording time every second
+      const intervalId = setInterval(() => {
+        if (recording) {
+          setRecordingTime((prevTime) => prevTime + 1);
+        }
+      }, 1000);
+
+      // Stop updating time when recording is done
+      recording.setOnRecordingStatusUpdate((status) => {
+        if (status.isDoneRecording) {
+          clearInterval(intervalId);
+        }
+      });
     } catch (error) {
       Alert.alert('Error', 'Unable to start recording.');
     }
@@ -55,8 +71,17 @@ const HomeScreen = () => {
   // Stop recording and save the audio file
   const stopRecording = async () => {
     try {
-      await recording.stopAndUnloadAsync();
+      if (!recording) {
+        Alert.alert('Error', 'Recording instance is not available.');
+        return;
+      }
+      await recording.stopAndUnloadAsync(); // Stop recording
       const uri = recording.getURI();
+      if (!uri) {
+        Alert.alert('Error', 'Recording URI is not available.');
+        return;
+      }
+
       const newVoiceNote = {
         id: uuidv4(),
         name: `Audio_${Math.floor(Math.random() * 1000)}`, // Random name
@@ -66,7 +91,8 @@ const HomeScreen = () => {
       const updatedNotes = [...voiceNotes, newVoiceNote];
       setVoiceNotes(updatedNotes);
       saveVoiceNotes(updatedNotes);
-      setRecording(null);
+      setRecording(null); // Reset the recording state
+      setRecordingTime(0); // Reset recording time
     } catch (error) {
       Alert.alert('Error', 'Unable to save recording.');
     }
@@ -124,6 +150,9 @@ const HomeScreen = () => {
         onPress={recording ? stopRecording : startRecording}
         color={recording ? 'red' : 'green'}
       />
+      {recording && (
+        <Text style={styles.recordingTime}>Recording Time: {recordingTime}s</Text>
+      )}
       <FlatList
         data={voiceNotes}
         keyExtractor={(item) => item.id}
@@ -141,10 +170,7 @@ const HomeScreen = () => {
                   value={newName}
                   onChangeText={setNewName}
                 />
-                <Button
-                  title="Save"
-                  onPress={() => updateVoiceNoteName(item.id)}
-                />
+                <Button title="Save" onPress={() => updateVoiceNoteName(item.id)} />
               </View>
             ) : (
               <TouchableOpacity
@@ -194,6 +220,7 @@ const styles = StyleSheet.create({
   renameText: { color: '#fff' },
   deleteButton: { padding: 5, backgroundColor: 'red', borderRadius: 5 },
   deleteText: { color: '#fff' },
+  recordingTime: { fontSize: 16, color: '#333', marginTop: 10 },
 });
 
 export default HomeScreen;
