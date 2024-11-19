@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]); // State to store the users
@@ -106,123 +114,53 @@ export default function UserManagement() {
       {/* Display error if any */}
       {error && <Text style={styles.error}>{error}</Text>}
 
-      {/* Button to toggle visibility of the form - move it to the top */}
-      <Button title={formVisible ? "Hide Add User Form" : "Add New User"} onPress={() => setFormVisible(!formVisible)} />
+      {/* Button to toggle visibility of the form */}
+      <Button
+        title={formVisible ? "Hide Add User Form" : "Add New User"}
+        onPress={() => setFormVisible(!formVisible)}
+      />
 
-      {/* Add User Form (visible when formVisible is true) */}
+      {/* Add User Form */}
       {formVisible && (
         <View style={styles.formContainer}>
           <Text style={styles.formTitle}>Add New User</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Name"
-            value={newUser.name}
-            onChangeText={(text) => setNewUser({ ...newUser, name: text })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Surname"
-            value={newUser.surname}
-            onChangeText={(text) => setNewUser({ ...newUser, surname: text })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="ID Number"
-            value={newUser.idNumber}
-            onChangeText={(text) => setNewUser({ ...newUser, idNumber: text })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            value={newUser.email}
-            onChangeText={(text) => setNewUser({ ...newUser, email: text })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            secureTextEntry
-            value={newUser.password}
-            onChangeText={(text) => setNewUser({ ...newUser, password: text })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Role"
-            value={newUser.role}
-            onChangeText={(text) => setNewUser({ ...newUser, role: text })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Designation"
-            value={newUser.designation}
-            onChangeText={(text) => setNewUser({ ...newUser, designation: text })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Joining Date"
-            value={newUser.joining_date}
-            onChangeText={(text) => setNewUser({ ...newUser, joining_date: text })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Salary"
-            value={newUser.salary}
-            onChangeText={(text) => setNewUser({ ...newUser, salary: text })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Phone"
-            value={newUser.phone}
-            onChangeText={(text) => setNewUser({ ...newUser, phone: text })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Address"
-            value={newUser.address}
-            onChangeText={(text) => setNewUser({ ...newUser, address: text })}
-          />
-
-          {/* Button to add the new user */}
+          {Object.keys(newUser).map((key) => (
+            <TextInput
+              key={key}
+              style={styles.input}
+              placeholder={key.replace('_', ' ').toUpperCase()}
+              value={newUser[key]}
+              onChangeText={(text) => setNewUser({ ...newUser, [key]: text })}
+              secureTextEntry={key === 'password'}
+            />
+          ))}
           <Button title="Add User" onPress={handleAddUser} />
         </View>
       )}
 
       {/* Filter Section */}
       <View style={styles.filterContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Filter by ID Number"
-          value={filters.idNumber}
-          onChangeText={(text) => handleFilterChange('idNumber', text)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Filter by Role"
-          value={filters.role}
-          onChangeText={(text) => handleFilterChange('role', text)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Filter by Name"
-          value={filters.name}
-          onChangeText={(text) => handleFilterChange('name', text)}
-        />
+        {Object.keys(filters).map((key) => (
+          <TextInput
+            key={key}
+            style={styles.input}
+            placeholder={`Filter by ${key}`}
+            value={filters[key]}
+            onChangeText={(text) => handleFilterChange(key, text)}
+          />
+        ))}
       </View>
 
-      {/* Display user cards in a row, wrapping when necessary */}
+      {/* User Cards */}
       <View style={styles.cardContainer}>
         {filteredUsers.map((user) => (
           <View key={user.id} style={styles.card}>
-            <Text style={styles.cardTitle}>
-              {user.name} {user.surname}
-            </Text>
-            <Text>ID: {user.idNumber}</Text>
-            <Text>Email: {user.email}</Text>
-            <Text>Role: {user.role}</Text>
-            <Text>Designation: {user.designation}</Text>
-            <Text>Joining Date: {user.joining_date}</Text>
-            <Text>Salary: {user.salary}</Text>
-            <Text>Phone: {user.phone}</Text>
-            <Text>Address: {user.address}</Text>
+            <Text style={styles.cardTitle}>{user.name} {user.surname}</Text>
+            {Object.keys(user).map((field) => (
+              field !== 'id' && (
+                <Text key={field}>{`${field.replace('_', ' ')}: ${user[field]}`}</Text>
+              )
+            ))}
           </View>
         ))}
       </View>
@@ -256,7 +194,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 15,
     marginRight: 10,
-    width: '18rem', // Set card width to 18rem as per your requirement
+    width: 150,
     borderRadius: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

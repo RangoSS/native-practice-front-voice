@@ -1,109 +1,233 @@
-import { StyleSheet, Image, Platform } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, Pressable } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { AntDesign, Entypo, FontAwesome5, Ionicons,FontAwesome,Octicons,MaterialIcons,FontAwesome6 } from '@expo/vector-icons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { useNavigation } from '@react-navigation/native';
 
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+export default function HomeScreen() {
 
-export default function TabTwoScreen() {
+  const navigation = useNavigation()
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user's current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <ScrollView contentContainerStyle={styles.container}>
+      <LinearGradient colors={["#7e7fD5", "#E9E4F0"]} style={styles.gradient}>
+        <View style={styles.header}>
+          <AntDesign name="barschart" size={24} color="black" />
+          <Text style={styles.title}>Employee Management System</Text>
+          <Entypo name="lock-open" size={24} color="black" />
+        </View>
+        <View style={styles.menuContainer}>
+          <Pressable style={styles.press} onPress={()=> navigation.navigate('employees')}>
+            
+            <View style={styles.sec1}>
+              <FontAwesome5 name="users" size={24} color="black" />
+            </View>
+            <Text style={styles.text_list}>Employee List</Text>
+          </Pressable>
+          <Pressable style={styles.press}>
+            <View style={styles.sec1}>
+              <Ionicons name="checkmark-done" size={24} color="black" />
+            </View>
+            <Text style={styles.text_list}>Mark Attendance</Text>
+          </Pressable>
+        </View>
+        <View style={styles.view_report}>
+          <Pressable style={styles.press_attend}>
+            <View style={styles.result}>
+            <FontAwesome6 name="people-line" size={24} color="black" />
+            </View>
+            <Text style={styles.text_report}>Attendance Report</Text>
+             <View style={styles.arrows}>
+             <Entypo name="chevron-right" size={24} color="black" />
+             </View>
+          </Pressable>
+          <Pressable style={styles.press_attend}>
+            <View style={styles.result}>
+            <Octicons name="repo-pull" size={24} color="black" />
+            </View>
+            <Text style={styles.text_report}>Summary Report</Text>
+             <View style={styles.arrows}>
+             <Entypo name="chevron-right" size={24} color="black" />
+             </View>
+          </Pressable>
+          <Pressable style={styles.press_attend}>
+            <View style={styles.result}>
+            <MaterialIcons name="generating-tokens" size={24} color="black" />
+            </View>
+            <Text style={styles.text_report}> all Generate Report</Text>
+             <View style={styles.arrows}>
+             <Entypo name="chevron-right" size={24} color="black" />
+             </View>
+          </Pressable>
+          <Pressable style={styles.press_attend}>
+            <View style={styles.result}>
+            <FontAwesome6 name="people-group" size={24} color="black" />
+            </View>
+            <Text style={styles.text_report}>Overtime Employees</Text>
+             <View style={styles.arrows}>
+             <Entypo name="chevron-right" size={24} color="black" />
+             </View>
+          </Pressable>
+          
+        </View>
+        <View style={styles.sec3}>
+        <View style={styles.attendance_view}>
+            <View style={styles.text_move}>
+            <MaterialCommunityIcons name="guy-fawkes-mask" size={24} color="black" />
+            </View>
+            <Text style={styles.text_list}>
+              Attendance Criteria
+            </Text>
+          </View>
+          <View style={styles.attendance_view}>
+            <View style={styles.text_move}>
+            <FontAwesome name="bar-chart-o" size={24} color="black" />
+            </View>
+            <Text style={styles.text_list}>
+              Increased Workflow
+            </Text>
+          </View>
+          </View>
+          <View style={styles.sec3}>
+        <View style={styles.attendance_view}>
+            <View style={styles.text_move}>
+            <MaterialCommunityIcons name="guy-fawkes-mask" size={24} color="black" />
+            </View>
+            <Text style={styles.text_list}>
+              Cost of Savings
+            </Text>
+          </View>
+          <View style={styles.attendance_view}>
+            <View style={styles.text_move}>
+            <FontAwesome name="bar-chart-o" size={24} color="black" />
+            </View>
+            <Text style={styles.text_list}>
+              Employee Perfomance
+            </Text>
+          </View>
+          </View>
+      </LinearGradient>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flexGrow: 1,
   },
-  titleContainer: {
+  gradient: {
+    flex: 1,
+    padding: 16,
+  },
+  header: {
     flexDirection: 'row',
-    gap: 8,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 10,
   },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  menuContainer: {
+    marginTop: 20,
+    flexDirection: 'row', // Align buttons horizontally
+    justifyContent: 'space-evenly', // Distribute space evenly between buttons
+    alignItems: 'center',
+  },
+  sec1: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "white",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  text_list: {
+    marginTop: 7,
+    fontWeight: "600",
+    fontSize: 16,
+    color: "#000",
+    textAlign: 'center',
+  },
+  text_report: {
+    flex:1,
+    marginLeft: 10,
+    fontWeight: "600",
+    fontSize: 16,
+    color: "#000",
+    textAlign: 'center',
+  },
+  press: {
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 10,
+    backgroundColor: "#D3CCE3",
+    width: "40%", // Adjust width for better horizontal fit
+    marginHorizontal: 10, // Space between buttons
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  result:{
+    padding:7,
+    width:45,
+    borderRadius:10,
+    backgroundColor:"white",
+    alignItems:"center",
+    justifyContent:"center"
+  },
+  arrows:{
+    width:35,
+    height:35,
+    borderRadius:7,backgroundColor:'white',
+    alignItems:"center",
+    justifyContent:"center"
+  },
+  press_attend:{
+    marginTop:10,
+    backgroundColor:"#BE93C5",
+    borderRadius:6,
+    padding:10,
+    flexDirection:"row",
+    alignItems:"center"
+  },
+  view_report:{
+    marginTop:20,
+    backgroundColor:"white",
+    paddingHorizontal:10,
+    paddingVertical:10,
+    borderRadius:7
+  },
+  text_move:{
+    width:35,
+    height:35,
+    borderRadius:7,
+    backgroundColor:'white',
+    alignItems:'center',
+    justifyContent:'center'
+  },
+  attendance_view:{
+    backgroundColor:'#abcaba',
+    marginTop:7,
+    borderRadius:7,
+    padding:12,
+    alignItems:'center',
+    justifyContent:'center',
+    flex:1
+  },
+  sec3:{
+    flexDirection:'row',
+    alignItems:'center',
+    gap:12
+  }
 });

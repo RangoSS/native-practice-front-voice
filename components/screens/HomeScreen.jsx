@@ -4,10 +4,10 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
+  TextInput,
   StyleSheet,
   Alert,
   Button,
-  TextInput,
 } from 'react-native';
 import { Audio } from 'expo-av';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -16,9 +16,8 @@ import { v4 as uuidv4 } from 'uuid';
 const HomeScreen = () => {
   const [recording, setRecording] = useState(null);
   const [voiceNotes, setVoiceNotes] = useState([]);
+  const [name, setName] = useState('');
   const [playing, setPlaying] = useState(null);
-  const [editNameId, setEditNameId] = useState(null);
-  const [newName, setNewName] = useState('');
 
   // Load voice notes from AsyncStorage on component mount
   useEffect(() => {
@@ -59,13 +58,14 @@ const HomeScreen = () => {
       const uri = recording.getURI();
       const newVoiceNote = {
         id: uuidv4(),
-        name: `Audio_${Math.floor(Math.random() * 1000)}`, // Random name
+        name: name || 'Unnamed Note',
         uri,
         date: new Date().toLocaleString(),
       };
       const updatedNotes = [...voiceNotes, newVoiceNote];
       setVoiceNotes(updatedNotes);
       saveVoiceNotes(updatedNotes);
+      setName('');
       setRecording(null);
     } catch (error) {
       Alert.alert('Error', 'Unable to save recording.');
@@ -101,24 +101,15 @@ const HomeScreen = () => {
     saveVoiceNotes(updatedNotes);
   };
 
-  // Update the name of a voice note
-  const updateVoiceNoteName = (id) => {
-    if (newName.trim() === '') {
-      Alert.alert('Error', 'Name cannot be empty.');
-      return;
-    }
-    const updatedNotes = voiceNotes.map((note) =>
-      note.id === id ? { ...note, name: newName } : note
-    );
-    setVoiceNotes(updatedNotes);
-    saveVoiceNotes(updatedNotes);
-    setEditNameId(null);
-    setNewName('');
-  };
-
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Voice Notes</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter note name..."
+        value={name}
+        onChangeText={setName}
+      />
       <Button
         title={recording ? 'Stop Recording' : 'Start Recording'}
         onPress={recording ? stopRecording : startRecording}
@@ -126,34 +117,13 @@ const HomeScreen = () => {
       />
       <FlatList
         data={voiceNotes}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={styles.voiceNote}>
             <TouchableOpacity onPress={() => playVoiceNote(item.uri)}>
               <Text style={styles.voiceNoteName}>{item.name}</Text>
               <Text>{item.date}</Text>
             </TouchableOpacity>
-            {editNameId === item.id ? (
-              <View style={styles.renameSection}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter new name"
-                  value={newName}
-                  onChangeText={setNewName}
-                />
-                <Button
-                  title="Save"
-                  onPress={() => updateVoiceNoteName(item.id)}
-                />
-              </View>
-            ) : (
-              <TouchableOpacity
-                onPress={() => setEditNameId(item.id)}
-                style={styles.renameButton}
-              >
-                <Text style={styles.renameText}>Rename</Text>
-              </TouchableOpacity>
-            )}
             <TouchableOpacity
               onPress={() => deleteVoiceNote(item.id)}
               style={styles.deleteButton}
@@ -170,29 +140,25 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: '#fff' },
   header: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    marginBottom: 20,
+    borderRadius: 5,
+  },
   voiceNote: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
     padding: 10,
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 5,
-    marginBottom: 10,
   },
-  voiceNoteName: { fontSize: 18, flex: 2 },
-  renameSection: { flexDirection: 'row', alignItems: 'center', flex: 3 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 5,
-    borderRadius: 5,
-    flex: 1,
-    marginRight: 10,
-  },
-  renameButton: { padding: 5, backgroundColor: '#007BFF', borderRadius: 5 },
-  renameText: { color: '#fff' },
-  deleteButton: { padding: 5, backgroundColor: 'red', borderRadius: 5 },
+  voiceNoteName: { fontSize: 18 },
+  deleteButton: { backgroundColor: 'red', padding: 5, borderRadius: 5 },
   deleteText: { color: '#fff' },
 });
 
