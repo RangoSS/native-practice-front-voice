@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, ScrollView, Switch } from 'react-native';
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]); // State to store the users
@@ -16,6 +16,7 @@ export default function UserManagement() {
     salary: '',
     phone: '',
     address: '',
+    active: true,
   }); // State to store new user input
   const [formVisible, setFormVisible] = useState(false); // State to toggle form visibility
   const [filters, setFilters] = useState({
@@ -31,7 +32,6 @@ export default function UserManagement() {
         const response = await fetch('http://localhost:3001/api/user'); // API endpoint
         const data = await response.json();
 
-        // Extract users array from the response object
         if (data && data.users && Array.isArray(data.users)) {
           setUsers(data.users); // Set the users array
         } else {
@@ -84,6 +84,7 @@ export default function UserManagement() {
           salary: '',
           phone: '',
           address: '',
+          active: true, // Reset active field
         });
       } else {
         throw new Error('Failed to add user');
@@ -106,10 +107,10 @@ export default function UserManagement() {
       {/* Display error if any */}
       {error && <Text style={styles.error}>{error}</Text>}
 
-      {/* Button to toggle visibility of the form - move it to the top */}
+      {/* Button to toggle visibility of the form */}
       <Button title={formVisible ? "Hide Add User Form" : "Add New User"} onPress={() => setFormVisible(!formVisible)} />
 
-      {/* Add User Form (visible when formVisible is true) */}
+      {/* Add User Form */}
       {formVisible && (
         <View style={styles.formContainer}>
           <Text style={styles.formTitle}>Add New User</Text>
@@ -181,7 +182,15 @@ export default function UserManagement() {
             onChangeText={(text) => setNewUser({ ...newUser, address: text })}
           />
 
-          {/* Button to add the new user */}
+          {/* Active Status Toggle */}
+          <View style={styles.switchContainer}>
+            <Text style={styles.label}>Active</Text>
+            <Switch
+              value={newUser.active}
+              onValueChange={(value) => setNewUser({ ...newUser, active: value })}
+            />
+          </View>
+
           <Button title="Add User" onPress={handleAddUser} />
         </View>
       )}
@@ -208,7 +217,7 @@ export default function UserManagement() {
         />
       </View>
 
-      {/* Display user cards in a row, wrapping when necessary */}
+      {/* Display Users */}
       <View style={styles.cardContainer}>
         {filteredUsers.map((user) => (
           <View key={user.id} style={styles.card}>
@@ -230,7 +239,7 @@ export default function UserManagement() {
   );
 }
 
-// Styles for the component
+// Styles
 const styles = StyleSheet.create({
   container: {
     padding: 20,
@@ -255,37 +264,45 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 15,
     marginBottom: 15,
-    marginRight: 10,
-    width: '18rem', // Set card width to 18rem as per your requirement
     borderRadius: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowRadius: 8,
+    elevation: 4,
+    width: '100%',
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    padding: 10,
     marginBottom: 10,
+    backgroundColor: '#fff',
   },
   formContainer: {
-    marginBottom: 20,
+    marginVertical: 20,
   },
   formTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 10,
   },
-  input: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    marginBottom: 10,
-    paddingLeft: 10,
-    borderRadius: 5,
+  switchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  label: {
+    fontSize: 16,
+    marginRight: 10,
   },
   filterContainer: {
-    marginBottom: 20,
+    marginVertical: 20,
   },
 });

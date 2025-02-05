@@ -1,189 +1,150 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  Button,
-  TextInput,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, TextInput, Alert } from 'react-native';
 import { Audio } from 'expo-av';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { v4 as uuidv4 } from 'uuid';
+import * as FileSystem from 'expo-file-system';
 
-const HomeScreen = () => {
+const VoiceRecorder = () => {
   const [recording, setRecording] = useState(null);
+  const [isRecording, setIsRecording] = useState(false);
   const [voiceNotes, setVoiceNotes] = useState([]);
-  const [playing, setPlaying] = useState(null);
-  const [editNameId, setEditNameId] = useState(null);
   const [newName, setNewName] = useState('');
-  const [recordingTime, setRecordingTime] = useState(0); // Track recording time
 
-  // Load voice notes from AsyncStorage on component mount
+  const voicesFolder = `${FileSystem.documentDirectory}voices/`;
+
   useEffect(() => {
-    const loadVoiceNotes = async () => {
-      const storedNotes = await AsyncStorage.getItem('voiceNotes');
-      if (storedNotes) setVoiceNotes(JSON.parse(storedNotes));
-    };
+    requestPermissions();
+    ensureVoicesFolder(); // Ensure the "voices" folder exists on app start
     loadVoiceNotes();
   }, []);
 
-  // Save voice notes to AsyncStorage
-  const saveVoiceNotes = async (notes) => {
-    await AsyncStorage.setItem('voiceNotes', JSON.stringify(notes));
+  // Request microphone permission
+  const requestPermissions = async () => {
+    const { status } = await Audio.requestPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'Please enable microphone access in settings.');
+    }
+  };
+
+  // Ensure "voices" folder exists
+  const ensureVoicesFolder = async () => {
+    const folderExists = await FileSystem.getInfoAsync(voicesFolder);
+    if (!folderExists.exists) {
+      await FileSystem.makeDirectoryAsync(voicesFolder, { intermediates: true });
+    }
+  };
+
+  // Load all saved voice notes
+  const loadVoiceNotes = async () => {
+    try {
+      await ensureVoicesFolder(); // Ensure folder exists before reading files
+      const files = await FileSystem.readDirectoryAsync(voicesFolder);
+      setVoiceNotes(files);
+    } catch (error) {
+      console.error('Error loading voice notes:', error);
+    }
   };
 
   // Start recording audio
   const startRecording = async () => {
     try {
-      const { status } = await Audio.requestPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission Denied', 'Microphone access is required.');
-        return;
-      }
-      await Audio.setAudioModeAsync({ allowsRecordingIOS: true });
-      const { recording } = await Audio.Recording.createAsync(
-        Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
-      );
-      setRecording(recording);
-      setRecordingTime(0); // Reset recording time
-
-      // Start updating recording time every second
-      const intervalId = setInterval(() => {
-        if (recording) {
-          setRecordingTime((prevTime) => prevTime + 1);
-        }
-      }, 1000);
-
-      // Stop updating time when recording is done
-      recording.setOnRecordingStatusUpdate((status) => {
-        if (status.isDoneRecording) {
-          clearInterval(intervalId);
-        }
+      await ensureVoicesFolder(); // Ensure the folder exists before saving
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
       });
+
+      const { recording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+      setRecording(recording);
+      setIsRecording(true);
     } catch (error) {
-      Alert.alert('Error', 'Unable to start recording.');
+      console.error('Failed to start recording:', error);
     }
   };
 
-  // Stop recording and save the audio file
+  // Stop recording and save the file
   const stopRecording = async () => {
     try {
-      if (!recording) {
-        Alert.alert('Error', 'Recording instance is not available.');
-        return;
-      }
-      await recording.stopAndUnloadAsync(); // Stop recording
-      const uri = recording.getURI();
-      if (!uri) {
-        Alert.alert('Error', 'Recording URI is not available.');
-        return;
-      }
+      if (recording) {
+        await recording.stopAndUnloadAsync();
+        const uri = recording.getURI();
+        const fileName = `voice_note_${Date.now()}.m4a`;
+        const filePath = voicesFolder + fileName;
 
-      const newVoiceNote = {
-        id: uuidv4(),
-        name: `Audio_${Math.floor(Math.random() * 1000)}`, // Random name
-        uri,
-        date: new Date().toLocaleString(),
-      };
-      const updatedNotes = [...voiceNotes, newVoiceNote];
-      setVoiceNotes(updatedNotes);
-      saveVoiceNotes(updatedNotes);
-      setRecording(null); // Reset the recording state
-      setRecordingTime(0); // Reset recording time
+        await FileSystem.moveAsync({ from: uri, to: filePath });
+        setRecording(null);
+        setIsRecording(false);
+
+        loadVoiceNotes();
+        Alert.alert('Recording Saved', `Saved at: ${filePath}`);
+      }
     } catch (error) {
-      Alert.alert('Error', 'Unable to save recording.');
+      console.error('Error stopping recording:', error);
     }
   };
 
-  // Play a voice note
-  const playVoiceNote = async (uri) => {
-    const sound = new Audio.Sound();
+  // Rename a voice note
+  const renameVoiceNote = async (oldName) => {
+    if (!newName.trim()) {
+      Alert.alert('Invalid Name', 'Please enter a valid name.');
+      return;
+    }
+
+    const oldPath = voicesFolder + oldName;
+    const newPath = voicesFolder + newName.trim() + '.m4a';
+
     try {
-      if (playing) {
-        await playing.stopAsync();
-        setPlaying(null);
-      } else {
-        await sound.loadAsync({ uri });
-        setPlaying(sound);
-        await sound.playAsync();
-        sound.setOnPlaybackStatusUpdate((status) => {
-          if (!status.isPlaying) {
-            setPlaying(null);
-          }
-        });
-      }
+      await FileSystem.moveAsync({ from: oldPath, to: newPath });
+      setNewName('');
+      loadVoiceNotes();
+      Alert.alert('Success', 'Voice note renamed successfully.');
     } catch (error) {
-      Alert.alert('Error', 'Unable to play this voice note.');
+      console.error('Error renaming file:', error);
     }
   };
 
   // Delete a voice note
-  const deleteVoiceNote = (id) => {
-    const updatedNotes = voiceNotes.filter((note) => note.id !== id);
-    setVoiceNotes(updatedNotes);
-    saveVoiceNotes(updatedNotes);
-  };
-
-  // Update the name of a voice note
-  const updateVoiceNoteName = (id) => {
-    if (newName.trim() === '') {
-      Alert.alert('Error', 'Name cannot be empty.');
-      return;
-    }
-    const updatedNotes = voiceNotes.map((note) =>
-      note.id === id ? { ...note, name: newName } : note
-    );
-    setVoiceNotes(updatedNotes);
-    saveVoiceNotes(updatedNotes);
-    setEditNameId(null);
-    setNewName('');
+  const deleteVoiceNote = async (fileName) => {
+    Alert.alert('Delete Confirmation', 'Are you sure you want to delete this voice note?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        onPress: async () => {
+          try {
+            await FileSystem.deleteAsync(voicesFolder + fileName);
+            loadVoiceNotes();
+            Alert.alert('Deleted', 'Voice note deleted successfully.');
+          } catch (error) {
+            console.error('Error deleting file:', error);
+          }
+        },
+      },
+    ]);
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Voice Notes</Text>
-      <Button
-        title={recording ? 'Stop Recording' : 'Start Recording'}
-        onPress={recording ? stopRecording : startRecording}
-        color={recording ? 'red' : 'green'}
-      />
-      {recording && (
-        <Text style={styles.recordingTime}>Recording Time: {recordingTime}s</Text>
-      )}
+      <TouchableOpacity
+        style={[styles.button, isRecording ? styles.buttonRecording : styles.buttonStart]}
+        onPress={isRecording ? stopRecording : startRecording}
+      >
+        <Text style={styles.buttonText}>{isRecording ? 'Stop Recording' : 'Start Recording'}</Text>
+      </TouchableOpacity>
+
       <FlatList
         data={voiceNotes}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item}
         renderItem={({ item }) => (
-          <View style={styles.voiceNote}>
-            <TouchableOpacity onPress={() => playVoiceNote(item.uri)}>
-              <Text style={styles.voiceNoteName}>{item.name}</Text>
-              <Text>{item.date}</Text>
+          <View style={styles.voiceItem}>
+            <Text style={styles.voiceText}>{item}</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Rename file..."
+              onChangeText={(text) => setNewName(text)}
+            />
+            <TouchableOpacity style={styles.renameButton} onPress={() => renameVoiceNote(item)}>
+              <Text style={styles.renameText}>Rename</Text>
             </TouchableOpacity>
-            {editNameId === item.id ? (
-              <View style={styles.renameSection}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter new name"
-                  value={newName}
-                  onChangeText={setNewName}
-                />
-                <Button title="Save" onPress={() => updateVoiceNoteName(item.id)} />
-              </View>
-            ) : (
-              <TouchableOpacity
-                onPress={() => setEditNameId(item.id)}
-                style={styles.renameButton}
-              >
-                <Text style={styles.renameText}>Rename</Text>
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              onPress={() => deleteVoiceNote(item.id)}
-              style={styles.deleteButton}
-            >
+            <TouchableOpacity style={styles.deleteButton} onPress={() => deleteVoiceNote(item)}>
               <Text style={styles.deleteText}>Delete</Text>
             </TouchableOpacity>
           </View>
@@ -194,33 +155,71 @@ const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
-  header: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
-  voiceNote: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    marginBottom: 10,
-  },
-  voiceNoteName: { fontSize: 18, flex: 2 },
-  renameSection: { flexDirection: 'row', alignItems: 'center', flex: 3 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 5,
-    borderRadius: 5,
+  container: {
     flex: 1,
-    marginRight: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
-  renameButton: { padding: 5, backgroundColor: '#007BFF', borderRadius: 5 },
-  renameText: { color: '#fff' },
-  deleteButton: { padding: 5, backgroundColor: 'red', borderRadius: 5 },
-  deleteText: { color: '#fff' },
-  recordingTime: { fontSize: 16, color: '#333', marginTop: 10 },
+  button: {
+    padding: 15,
+    borderRadius: 8,
+    width: 200,
+    alignItems: 'center',
+    marginBottom: 20,
+    marginTop:10,
+  },
+  buttonStart: {
+    backgroundColor: '#4CAF50',
+  },
+  buttonRecording: {
+    backgroundColor: '#E53935',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  voiceItem: {
+    flexDirection: 'column',
+    padding: 10,
+    marginBottom: 10,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 5,
+    width: '100%',
+    alignItems: 'center',
+  },
+  voiceText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  input: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    width: '80%',
+    padding: 5,
+    marginVertical: 5,
+  },
+  renameButton: {
+    backgroundColor: '#007BFF',
+    padding: 5,
+    marginTop: 5,
+    borderRadius: 5,
+  },
+  renameText: {
+    color: 'white',
+    fontSize: 14,
+  },
+  deleteButton: {
+    backgroundColor: '#E53935',
+    padding: 5,
+    marginTop: 5,
+    borderRadius: 5,
+  },
+  deleteText: {
+    color: 'white',
+    fontSize: 14,
+  },
 });
 
-export default HomeScreen;
+export default VoiceRecorder;

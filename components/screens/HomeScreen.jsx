@@ -51,7 +51,7 @@ const HomeScreen = () => {
     }
   };
 
-  // Stop recording and save the audio file
+    //stop recording function
   const stopRecording = async () => {
     try {
       await recording.stopAndUnloadAsync();
@@ -68,10 +68,11 @@ const HomeScreen = () => {
       setName('');
       setRecording(null);
     } catch (error) {
+      console.log('Error stopping recording:', error); // Log the error here
       Alert.alert('Error', 'Unable to save recording.');
     }
   };
-
+  
   // Play a voice note
   const playVoiceNote = async (uri) => {
     const sound = new Audio.Sound();
